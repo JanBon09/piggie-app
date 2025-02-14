@@ -1,0 +1,27 @@
+# Logs
+/piggieFrontend/logs
+/piggieFrontend/*.log
+/piggieFrontend/npm-debug.log*
+/piggieFrontend/yarn-debug.log*
+/piggieFrontend/yarn-error.log*
+/piggieFrontend/pnpm-debug.log*
+/piggieFrontend/lerna-debug.log*
+
+/piggieFrontend/node_modules
+/piggieFrontend/dist
+/piggieFrontend/dist-ssr
+/piggieFrontend/*.local
+
+# Editor directories and files
+/piggieFrontend/.vscode/*
+/piggieFrontend/!.vscode/extensions.json
+/piggieFrontend/.idea
+/piggieFrontend/.DS_Store
+/piggieFrontend/*.suo
+/piggieFrontend/*.ntvs*
+/piggieFrontend/*.njsproj
+/piggieFrontend/*.sln
+/piggieFrontend/*.sw?
+
+/piggieBackend/piggieBackend.exe
+/piggieBackend/test
