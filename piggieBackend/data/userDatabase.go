@@ -1,12 +1,16 @@
 package data
 
-import "piggieBackend/content"
+import (
+	"database/sql"
+	"fmt"
+	"piggieBackend/content"
+)
 
 // Registers new user in a database making it possible for him to login into WebApp
 func RegisterNewUserRequired(newUser content.NewUser) error {
-	query := "INSERT INTO users(username, password, email, dateofbirth, salt) "
-	query += "VALUES($1, $2, $3, $4, $5)"
-	statement, err := DB.Prepare(query)
+	stringStatement := "INSERT INTO users(username, password, email, dateofbirth, salt) "
+	stringStatement += "VALUES($1, $2, $3, $4, $5)"
+	statement, err := DB.Prepare(stringStatement)
 	if err != nil {
 		return err
 	}
@@ -20,4 +24,26 @@ func RegisterNewUserRequired(newUser content.NewUser) error {
 }
 
 // Verify user existence to log him in
-func VerifyUserExistence(user content.ExistingUser) {}
+func VerifyUserExistence(user content.ExistingUser) (bool, error) {
+	stringStatement := "SELECT password FROM testUsers WHERE username LIKE $1"
+	statement, err := DB.Prepare(stringStatement)
+	if err != nil {
+		return false, err
+	}
+
+	var recivedPassword string
+	err = statement.QueryRow(user.Username).Scan(&recivedPassword)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return true, err
+		} else {
+			return false, err
+		}
+	}
+
+	if user.Password != recivedPassword {
+		return true, fmt.Errorf("password missmatch")
+	}
+
+	return true, nil
+}

@@ -1,26 +1,56 @@
 package security
 
 import (
-	"crypto/rand"
-	"encoding/base64"
-	"log"
+	"errors"
 	"piggieBackend/content"
-	"piggieBackend/data"
+	"regexp"
 )
 
-// Generating salt for password hashing
-func generateSalt(len int16) string {
-	salt := make([]byte, len)
-	_, err := rand.Read(salt)
-	if err != nil {
-		log.Fatal("Something went wrong")
+var (
+	ErrInvalidLength            = errors.New("error: Invalid credential length")
+	ErrSyntaxRequirementsNotMet = errors.New("error: Syntax requirements not met")
+	ErrInvalidRegexp            = errors.New("error: Invalid regexp formula")
+	ErrInvalidTextContent       = errors.New("error: Invalid credential content")
+)
+
+func checkUsername(username string) error {
+	if len(username) < 1 {
+		return ErrInvalidLength
 	}
 
-	encodedSalt := base64.RawStdEncoding.EncodeToString(salt)
+	r, err := regexp.Compile(`[{}\[\]()]`)
+	if err != nil {
+		return ErrInvalidRegexp
+	}
 
-	return encodedSalt
+	if r.MatchString(username) {
+		return ErrInvalidTextContent
+	}
+
+	return nil
 }
 
-func ValidateNewUserData(newUser content.NewUser) {
-	data.RegisterNewUserRequired(newUser)
+func checkPassword(password string) {
+
+}
+
+func CheckEmail(email string) error {
+	if len(email) < 1 {
+		return ErrInvalidLength
+	}
+
+	r, err := regexp.Compile("^[a-zA-Z0-9]{1,}@[a-zA-Z]{1,}.[a-zA-Z]{1,4}$")
+	if err != nil {
+		return ErrInvalidRegexp
+	}
+
+	if !r.MatchString(email) {
+		return ErrSyntaxRequirementsNotMet
+	}
+
+	return nil
+}
+
+func SecurityProcessNewUser(newUser content.NewUser) {
+
 }

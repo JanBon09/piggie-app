@@ -42,3 +42,8 @@ func (newUser *NewUser) InitNewUserFull(username string, password string, email 
 	newUser.InitNewUserRequired(username, password, email, dateOfBirth)
 	newUser.InitNewUserOptional(name, surname, country, profilePictureURL)
 }
+
+func (existingUser *ExistingUser) InitExistingUser(username string, password string) {
+	existingUser.Username = username
+	existingUser.Password = password
+}
