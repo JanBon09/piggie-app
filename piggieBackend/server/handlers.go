@@ -3,6 +3,8 @@ package server
 import (
 	"encoding/json"
 	"net/http"
+	"piggieBackend/content"
+	"piggieBackend/security"
 )
 
 // Struct for required user data
@@ -50,10 +52,13 @@ func handleRegister(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	var registeringUser newUserRequired
+	var registeringUser content.NewUser
 	if err := json.NewDecoder(request.Body).Decode(&registeringUser); err != nil {
 		http.Error(writer, "Bad request", http.StatusBadRequest)
 		return
 	}
 
+	if err := security.SecurityRunNewUser(registeringUser); err != nil {
+		http.Error(writer, "Internal server error", http.StatusInternalServerError)
+	}
 }

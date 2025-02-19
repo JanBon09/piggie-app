@@ -8,7 +8,7 @@ import (
 
 // Registers new user in a database making it possible for him to login into WebApp
 func RegisterNewUserRequired(newUser content.NewUser) error {
-	stringStatement := "INSERT INTO users(username, password, email, dateofbirth, salt) "
+	stringStatement := "INSERT INTO testUsers(username, password, email, dateofbirth, salt) "
 	stringStatement += "VALUES($1, $2, $3, $4, $5)"
 	statement, err := DB.Prepare(stringStatement)
 	if err != nil {

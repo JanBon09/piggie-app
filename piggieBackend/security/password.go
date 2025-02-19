@@ -4,10 +4,12 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"log"
+	"piggieBackend/content"
 
 	"golang.org/x/crypto/argon2"
 )
 
+// Struct for holding argon2 parameters
 type argon2Params struct {
 	time      uint32
 	memory    uint32
@@ -28,10 +30,12 @@ func generateSalt(len uint16) []byte {
 	return salt
 }
 
+// Encoding bytes array into string
 func encodeBytesArray(arr []byte) string {
 	return base64.RawURLEncoding.EncodeToString(arr)
 }
 
+// Decoding string into bytes array
 func decodeString(text string) ([]byte, error) {
 	arr, err := base64.RawStdEncoding.DecodeString(text)
 	if err != nil {
@@ -40,14 +44,15 @@ func decodeString(text string) ([]byte, error) {
 	return arr, nil
 }
 
-func HashPassword(password string, saltLen uint16) (encodedHashedPassword string, salt []byte, err error) {
-	decodedPassword, err := decodeString(password)
-	if err != nil {
-		return "", nil, err
-	}
-	salt = generateSalt(saltLen)
+// Generating salt and hashing password using argon2
+func hashPassword(newUser *content.NewUser, saltLen uint16) (err error) {
+	decodedPassword := []byte(newUser.Password)
+	salt := generateSalt(saltLen)
 
 	hashedPassword := argon2.IDKey(decodedPassword, salt, hashingParams.time, hashingParams.memory, hashingParams.threads, hashingParams.keyLength)
 
-	return encodeBytesArray(hashedPassword), salt, nil
+	newUser.Password = encodeBytesArray(hashedPassword)
+	newUser.Salt = encodeBytesArray(salt)
+
+	return nil
 }
