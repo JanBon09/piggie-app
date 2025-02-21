@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"piggieBackend/content"
+	"piggieBackend/utility"
 )
 
 // Registers new user in a database making it possible for him to login into WebApp
@@ -24,6 +25,11 @@ func RegisterNewUserRequired(newUser content.NewUser) error {
 }
 
 // Verify user existence to log him in
+// Function returns error if there is any problem in a process of getting data
+// Or there is problem with data itself, nil is returned only on success
+// Second(Or more like first) return value is true when processed of
+// Acquiring data run successfuly but data does not exist or there is a mismatch in data
+// False is returned on problem with process of getting data itself
 func VerifyUserExistence(user content.ExistingUser) (bool, error) {
 	stringStatement := "SELECT password FROM testUsers WHERE username LIKE $1"
 	statement, err := DB.Prepare(stringStatement)
@@ -42,7 +48,7 @@ func VerifyUserExistence(user content.ExistingUser) (bool, error) {
 	}
 
 	if user.Password != recivedPassword {
-		return true, fmt.Errorf("password missmatch")
+		return true, utility.ErrPasswordMismatch
 	}
 
 	return true, nil

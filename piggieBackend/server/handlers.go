@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"piggieBackend/content"
 	"piggieBackend/security"
+	"piggieBackend/utility"
 )
 
 // Struct for required user data
@@ -43,8 +44,8 @@ func handleWelcome(writer http.ResponseWriter, request *http.Request) {
 // Realized:
 // - Reciving and decoding needed data from user from frontend
 // - Salt generation
-// To do:
 // - Password hashing
+// To do:
 // - Optional data handling
 func handleRegister(writer http.ResponseWriter, request *http.Request) {
 	if request.Method != http.MethodPost {
@@ -59,6 +60,33 @@ func handleRegister(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	if err := security.SecurityRunNewUser(registeringUser); err != nil {
-		http.Error(writer, "Internal server error", http.StatusInternalServerError)
+		switch err {
+		case (utility.ErrInvalidLength):
+			http.Error(writer, "Password needs to be atleast 8 characters long", http.StatusForbidden)
+		case (utility.ErrSyntaxRequirementsNotMet):
+			errMsg := "Password must contain at least 1: capital letter, lowercase letter, number and special character"
+			http.Error(writer, errMsg, http.StatusForbidden)
+		case (utility.ErrInvalidTextContent):
+			http.Error(writer, "Password must not contain any form of brackets", http.StatusForbidden)
+		default:
+			http.Error(writer, "Internal server error", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	writer.WriteHeader(http.StatusCreated)
+}
+
+// Handling existing user login
+func handleLogin(writer http.ResponseWriter, request *http.Request) {
+	if request.Method != http.MethodPost {
+		http.Error(writer, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var existingUser content.ExistingUser
+	if err := json.NewDecoder(request.Body).Decode(&existingUser); err != nil {
+		http.Error(writer, "Bad request", http.StatusBadRequest)
+		return
 	}
 }

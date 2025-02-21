@@ -1,18 +1,11 @@
 package security
 
 import (
-	"errors"
 	"fmt"
 	"piggieBackend/content"
 	"piggieBackend/data"
+	"piggieBackend/utility"
 	"regexp"
-)
-
-var (
-	ErrInvalidLength            = errors.New("error: Invalid credential length")
-	ErrSyntaxRequirementsNotMet = errors.New("error: Syntax requirements not met")
-	ErrInvalidRegexp            = errors.New("error: Invalid regexp formula")
-	ErrInvalidTextContent       = errors.New("error: Invalid credential content")
 )
 
 // Checking if username:
@@ -20,16 +13,16 @@ var (
 // - does not contain any brackets
 func checkUsername(username string) error {
 	if len(username) < 1 {
-		return ErrInvalidLength
+		return utility.ErrInvalidLength
 	}
 
 	r, err := regexp.Compile(`[{}\[\]()]`)
 	if err != nil {
-		return ErrInvalidRegexp
+		return utility.ErrInvalidRegexp
 	}
 
 	if r.MatchString(username) {
-		return ErrInvalidTextContent
+		return utility.ErrInvalidTextContent
 	}
 
 	return nil
@@ -44,7 +37,7 @@ func checkUsername(username string) error {
 // - does not contain any brackets
 func checkPassword(password string) error {
 	if len(password) < 8 {
-		return ErrInvalidLength
+		return utility.ErrInvalidLength
 	}
 
 	patterns := make([]string, 5)
@@ -57,16 +50,16 @@ func checkPassword(password string) error {
 	for i := range patterns {
 		r, err := regexp.Compile(patterns[i])
 		if err != nil {
-			return ErrInvalidRegexp
+			return utility.ErrInvalidRegexp
 		}
 
 		if i < 4 {
 			if !r.MatchString(password) {
-				return ErrSyntaxRequirementsNotMet
+				return utility.ErrSyntaxRequirementsNotMet
 			}
 		} else {
 			if r.MatchString(password) {
-				return ErrInvalidTextContent
+				return utility.ErrInvalidTextContent
 			}
 		}
 	}
@@ -79,16 +72,16 @@ func checkPassword(password string) error {
 // - is formulated like: [a-zA-Z0-9]@[a-zA-Z].[a-zA-Z]
 func checkEmail(email string) error {
 	if len(email) < 5 {
-		return ErrInvalidLength
+		return utility.ErrInvalidLength
 	}
 
 	r, err := regexp.Compile("^[a-zA-Z0-9]{1,}@[a-zA-Z]{1,}.[a-zA-Z]{1,4}$")
 	if err != nil {
-		return ErrInvalidRegexp
+		return utility.ErrInvalidRegexp
 	}
 
 	if !r.MatchString(email) {
-		return ErrSyntaxRequirementsNotMet
+		return utility.ErrSyntaxRequirementsNotMet
 	}
 
 	return nil
@@ -126,6 +119,52 @@ func SecurityRunNewUser(newUser content.NewUser) error {
 
 	if err := data.RegisterNewUserRequired(newUser); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// While checking username of a existing username
+// We make assumption that the only thing we need to protect form
+// Is malicious text content being passed using login form
+// If user is trying to access his real account, credentials have
+// Already had to pass register related validation
+func checkExistingCredential(credential string) error {
+	if len(credential) == 0 {
+		return utility.ErrEmptyCredential
+	}
+
+	r, err := regexp.Compile(`[()<>{}\[\]]`)
+	if err != nil {
+		return utility.ErrInvalidRegexp
+	}
+
+	if r.MatchString(credential) {
+		return utility.ErrInvalidTextContent
+	}
+
+	return nil
+}
+
+func SecurityRunExistingUser(existingUser content.ExistingUser) error {
+	if err := checkExistingCredential(existingUser.Username); err != nil {
+		return err
+	}
+	if err := checkExistingCredential(existingUser.Password); err != nil {
+		return err
+	}
+
+	processStatus, err := data.VerifyUserExistence(existingUser)
+	if err != nil {
+		if processStatus != true {
+			return utility.ErrDatabaseError
+		} else {
+			if err != utility.ErrPasswordMismatch {
+				return utility.ErrNoRows
+			} else {
+				return err
+			}
+		}
 	}
 
 	return nil
