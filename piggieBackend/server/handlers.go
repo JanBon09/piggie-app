@@ -89,4 +89,15 @@ func handleLogin(writer http.ResponseWriter, request *http.Request) {
 		http.Error(writer, "Bad request", http.StatusBadRequest)
 		return
 	}
+
+	if err := security.SecurityRunExistingUser(existingUser); err != nil {
+		if err == utility.ErrPasswordMismatch {
+			http.Error(writer, "Wrong username or password", http.StatusUnauthorized)
+			return
+		} else if err == utility.ErrNoRows {
+			http.Error(writer, "No user account with given username", http.StatusNotFound)
+		} else {
+			http.Error(writer, "Interal server error", http.StatusInternalServerError)
+		}
+	}
 }

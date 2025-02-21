@@ -2,7 +2,6 @@ package data
 
 import (
 	"database/sql"
-	"fmt"
 	"piggieBackend/content"
 	"piggieBackend/utility"
 )
@@ -30,26 +29,22 @@ func RegisterNewUserRequired(newUser content.NewUser) error {
 // Second(Or more like first) return value is true when processed of
 // Acquiring data run successfuly but data does not exist or there is a mismatch in data
 // False is returned on problem with process of getting data itself
-func VerifyUserExistence(user content.ExistingUser) (bool, error) {
-	stringStatement := "SELECT password FROM testUsers WHERE username LIKE $1"
+func VerifyUserExistence(username string) (content.PasswordAndSalt, error) {
+	stringStatement := "SELECT password, salt FROM testUsers WHERE username LIKE $1"
 	statement, err := DB.Prepare(stringStatement)
 	if err != nil {
-		return false, err
+		return content.PasswordAndSalt{Password: "", Salt: ""}, err
 	}
 
-	var recivedPassword string
-	err = statement.QueryRow(user.Username).Scan(&recivedPassword)
+	var passwordAndSalt content.PasswordAndSalt
+	err = statement.QueryRow(username).Scan(&passwordAndSalt.Password, &passwordAndSalt.Salt)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return true, err
+			return content.PasswordAndSalt{Password: "", Salt: ""}, utility.ErrNoRows
 		} else {
-			return false, err
+			return content.PasswordAndSalt{Password: "", Salt: ""}, err
 		}
 	}
 
-	if user.Password != recivedPassword {
-		return true, utility.ErrPasswordMismatch
-	}
-
-	return true, nil
+	return passwordAndSalt, nil
 }

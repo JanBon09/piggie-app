@@ -16,6 +16,12 @@ type NewUser struct {
 type ExistingUser struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
+	Salt     string `json:"salt"`
+}
+
+type PasswordAndSalt struct {
+	Password string `json:"password"`
+	Salt     string `json:"salt"`
 }
 
 // 'Constructors' of a NewUser struct

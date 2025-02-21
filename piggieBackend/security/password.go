@@ -20,19 +20,19 @@ type argon2Params struct {
 var hashingParams argon2Params = argon2Params{3, 64 * 1024, 2, 32}
 
 // Generating salt for password hashing
-func generateSalt(len uint16) []byte {
+func generateSalt(len uint16) string {
 	salt := make([]byte, len)
 	_, err := rand.Read(salt)
 	if err != nil {
 		log.Fatal("Something went wrong")
 	}
 
-	return salt
+	return encodeBytesArray(salt)
 }
 
 // Encoding bytes array into string
 func encodeBytesArray(arr []byte) string {
-	return base64.RawURLEncoding.EncodeToString(arr)
+	return base64.RawStdEncoding.EncodeToString(arr)
 }
 
 // Decoding string into bytes array
@@ -45,14 +45,25 @@ func decodeString(text string) ([]byte, error) {
 }
 
 // Generating salt and hashing password using argon2
-func hashPassword(newUser *content.NewUser, saltLen uint16) (err error) {
+func hashPasswordNewUser(newUser *content.NewUser, saltLen uint16) (err error) {
 	decodedPassword := []byte(newUser.Password)
 	salt := generateSalt(saltLen)
 
-	hashedPassword := argon2.IDKey(decodedPassword, salt, hashingParams.time, hashingParams.memory, hashingParams.threads, hashingParams.keyLength)
+	hashedPassword := argon2.IDKey(decodedPassword, []byte(salt), hashingParams.time, hashingParams.memory, hashingParams.threads, hashingParams.keyLength)
 
 	newUser.Password = encodeBytesArray(hashedPassword)
-	newUser.Salt = encodeBytesArray(salt)
+	newUser.Salt = salt
+
+	return nil
+}
+
+func hashPasswordExistingUser(existingUser *content.ExistingUser) (err error) {
+	decodedPassword := []byte(existingUser.Password)
+	decodedSalt := []byte(existingUser.Salt)
+
+	hashedPassword := argon2.IDKey(decodedPassword, decodedSalt, hashingParams.time, hashingParams.memory, hashingParams.threads, hashingParams.keyLength)
+
+	existingUser.Password = encodeBytesArray(hashedPassword)
 
 	return nil
 }
