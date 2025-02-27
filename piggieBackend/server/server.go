@@ -31,6 +31,9 @@ func allowCORS(handler http.Handler) http.Handler {
 func InitServer() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/welcome", handleWelcome)
+	mux.HandleFunc("/register", handleRegister)
+	mux.HandleFunc("/login", handleLogin)
+
 	err := http.ListenAndServe(":8080", allowCORS(mux))
 	if err != nil {
 		log.Fatal(err)

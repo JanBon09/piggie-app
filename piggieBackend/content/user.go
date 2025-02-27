@@ -13,16 +13,21 @@ type NewUser struct {
 	ProfilePictureURL string `json:"profilePictureURL"`
 }
 
+// Struct representing user that tries to login
 type ExistingUser struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 	Salt     string `json:"salt"`
 }
 
+// Struct used in a process of verifiaction user credentials that tries to login
 type PasswordAndSalt struct {
 	Password string `json:"password"`
 	Salt     string `json:"salt"`
 }
+
+// This whole section of 'constructors' below needs to be get ridden of
+// Useless and overkill
 
 // 'Constructors' of a NewUser struct
 func (newUser *NewUser) InitNewUserRequired(username string, password string, email string, dateOfBirth string) {

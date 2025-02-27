@@ -149,6 +149,7 @@ func checkExistingCredential(credential string) error {
 // Security funciton to validate and verify existence of a user account
 // with given credentials
 func SecurityRunExistingUser(existingUser content.ExistingUser) error {
+	// Validating given credentials - username and password
 	if err := checkExistingCredential(existingUser.Username); err != nil {
 		return err
 	}
@@ -156,6 +157,7 @@ func SecurityRunExistingUser(existingUser content.ExistingUser) error {
 		return err
 	}
 
+	// Verifing that user account with given username exists, after that retriving hashed password and salt from db
 	passwordAndSalt, err := data.VerifyUserExistence(existingUser.Username)
 	if err != nil {
 		if err != utility.ErrNoRows {
@@ -167,10 +169,12 @@ func SecurityRunExistingUser(existingUser content.ExistingUser) error {
 
 	existingUser.Salt = passwordAndSalt.Salt
 
+	// Hashing user password
 	if err := hashPasswordExistingUser(&existingUser); err != nil {
 		return err
 	}
 
+	// Comparing password retrived from db with password hashed right now using the same salt
 	if passwordAndSalt.Password != existingUser.Password {
 		return utility.ErrPasswordMismatch
 	}

@@ -22,8 +22,19 @@ var (
 	ErrEmptyCredential = errors.New("error: Empty credential form")
 )
 
+// Used both for logging in and registration
 var (
+	// Compared password are not equal
 	ErrPasswordMismatch = errors.New("error: Password missmatch")
-	ErrDatabaseError    = errors.New("error: Something went wrong wile communicating with database server")
-	ErrNoRows           = errors.New("error: No rows were returned")
+
+	// Internal database server error
+	ErrDatabaseError = errors.New("error: Something went wrong wile communicating with database server")
+
+	// No rows were returned when they were expected
+	ErrNoRows = errors.New("error: No rows were returned")
+)
+
+// Used for users session
+var (
+	ErrInvalidJWT = errors.New("error: JWT that comes with request is invalid")
 )

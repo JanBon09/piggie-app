@@ -36,13 +36,13 @@ func encodeBytesArray(arr []byte) string {
 }
 
 // Decoding string into bytes array
-func decodeString(text string) ([]byte, error) {
-	arr, err := base64.RawStdEncoding.DecodeString(text)
-	if err != nil {
-		return nil, err
-	}
-	return arr, nil
-}
+// func decodeString(text string) ([]byte, error) {
+// 	arr, err := base64.RawStdEncoding.DecodeString(text)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return arr, nil
+// }
 
 // Generating salt and hashing password using argon2
 func hashPasswordNewUser(newUser *content.NewUser, saltLen uint16) (err error) {
@@ -57,6 +57,10 @@ func hashPasswordNewUser(newUser *content.NewUser, saltLen uint16) (err error) {
 	return nil
 }
 
+// Hashing existingUser password using salt retrived from db
+// To be considered:
+// There could be one function using interaface and splitting salt generation from indside of function or making it based on some
+// Predetermined go mechanism
 func hashPasswordExistingUser(existingUser *content.ExistingUser) (err error) {
 	decodedPassword := []byte(existingUser.Password)
 	decodedSalt := []byte(existingUser.Salt)
