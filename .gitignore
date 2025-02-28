@@ -25,3 +25,5 @@
 
 /piggieBackend/piggieBackend.exe
 /piggieBackend/test
+
+/piggieBackend/utility/secretKey.txt

@@ -2,27 +2,12 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"piggieBackend/content"
 	"piggieBackend/security"
 	"piggieBackend/utility"
 )
-
-// Struct for required user data
-type newUserRequired struct {
-	Username    string `json:"username"`
-	Password    string `json:"password"`
-	Email       string `json:"email"`
-	DateOfBirth string `json:"dateOfBirth"`
-}
-
-// Struct for optional user data
-type newUserOptional struct {
-	Name              string `json:"name"`
-	Surname           string `json:"surname"`
-	Country           int8   `json:"country"`
-	ProfilePictureURL string `json:"profilePictureURL"`
-}
 
 // Sending simple text content to frontend in form of json
 func handleWelcome(writer http.ResponseWriter, request *http.Request) {
@@ -106,7 +91,8 @@ func handleLogin(writer http.ResponseWriter, request *http.Request) {
 
 	userSessionCookie, err := security.UserSessionCookieCreation(existingUser.Username, 1)
 	if err != nil {
-		http.Error(writer, "Status bad request", http.StatusBadRequest)
+		fmt.Println(err)
+		http.Error(writer, "Bad request", http.StatusBadRequest)
 		return
 	}
 

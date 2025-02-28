@@ -13,6 +13,13 @@ type NewUser struct {
 	ProfilePictureURL string `json:"profilePictureURL"`
 }
 
+type NewUserTemp struct {
+	Username    string `json:"username"`
+	Password    string `json:"password"`
+	Email       string `json:"email"`
+	DateOfBirth string `json:"dateOfBirth"`
+}
+
 // Struct representing user that tries to login
 type ExistingUser struct {
 	Username string `json:"username"`

@@ -13,7 +13,7 @@ var encodedSecretKey string
 func LoadSecretKey(filepath string) error {
 	var err error
 
-	encodedSecretKey, err = utility.ReadFile("C:\\WebApp_Projects\\piggieApp\\piggieBackend\\utility\\secretKey.txt")
+	encodedSecretKey, err = utility.ReadFile(filepath)
 	if err != nil {
 		return err
 	}

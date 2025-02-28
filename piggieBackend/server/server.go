@@ -3,6 +3,8 @@ package server
 import (
 	"log"
 	"net/http"
+	"piggieBackend/data"
+	"piggieBackend/security"
 )
 
 func allowCORS(handler http.Handler) http.Handler {
@@ -29,6 +31,11 @@ func allowCORS(handler http.Handler) http.Handler {
 }
 
 func InitServer() {
+	data.InitDB()
+	defer data.CloseDB()
+
+	security.LoadSecretKey("C:\\WebApp_Projects\\piggieApp\\piggieBackend\\utility\\secretKey.txt")
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/welcome", handleWelcome)
 	mux.HandleFunc("/register", handleRegister)
