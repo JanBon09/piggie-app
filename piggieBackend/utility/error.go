@@ -38,3 +38,8 @@ var (
 var (
 	ErrInvalidJWT = errors.New("error: JWT that comes with request is invalid")
 )
+
+// Get handles helper errors
+var (
+	ErrInvalidMethod = errors.New("error: Invalid request method. Only GET request are valid")
+)

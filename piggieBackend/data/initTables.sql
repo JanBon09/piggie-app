@@ -10,3 +10,24 @@ CREATE TABLE users(
     country INT,
     profilePictureURL TEXT
 );
+
+CREATE TABLE wallet(
+    userId INTEGER REFERENCES users(id),
+    balance NUMERIC(12, 2) NOT NULL,
+    currency INTEGER NOT NULL
+);
+
+CREATE TABLE transactions(
+    id SERIAL PRIMARY KEY,
+    userId INTEGER REFERENCES users(id),
+    transactionType INTEGER NOT NULL,
+    amount NUMERIC(12, 2) NOT NULL,
+    transactionDate DATE NOT NULL 
+);
+
+CREATE TABLE transactionsHistory(
+    userId INTEGER REFERENCES users(id),
+    numberOfTransactions INTEGER NOT NULL,
+    totalEarnings NUMERIC(12, 2) NOT NULL,
+    totalSpendings NUMERIC(12, 2)
+);

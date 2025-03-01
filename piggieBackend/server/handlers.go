@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"piggieBackend/content"
+	"piggieBackend/data"
 	"piggieBackend/security"
 	"piggieBackend/utility"
 )
@@ -89,7 +90,7 @@ func handleLogin(writer http.ResponseWriter, request *http.Request) {
 		}
 	}
 
-	userSessionCookie, err := security.UserSessionCookieCreation(existingUser.Username, 1)
+	userSessionCookie, err := security.UserSessionCookieCreation(existingUser.Username, 60)
 	if err != nil {
 		fmt.Println(err)
 		http.Error(writer, "Bad request", http.StatusBadRequest)
@@ -97,4 +98,54 @@ func handleLogin(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	http.SetCookie(writer, &userSessionCookie)
+}
+
+// Helper for all GET'ters of user data that needs JWT validation
+// and retriving user's credentials from it
+func userDataHandleHelper(writer *http.ResponseWriter, request *http.Request) (string, error) {
+	if request.Method != http.MethodGet {
+		http.Error(*writer, "Bad method", http.StatusMethodNotAllowed)
+		return "", utility.ErrInvalidMethod
+	}
+
+	// Retriving cookie storing user's JWT
+	sessionCookie, err := request.Cookie("userSession")
+	if err != nil {
+		http.Error(*writer, "Bad request", http.StatusBadRequest)
+		return "", err
+	}
+
+	// Security section for validating JWT coming with request
+	username, err := security.UserSessionVerification(sessionCookie.Value)
+	if err != nil {
+		http.Error(*writer, "Unauthorized", http.StatusUnauthorized)
+		return "", err
+	}
+
+	return username, nil
+}
+
+func handleUserPanel(writer http.ResponseWriter, request *http.Request) {
+	// Using helper for JWT validation and retriving user's credentials from it
+	// http.Error is omitted here beacuse it was written to writer in helper.
+	username, err := userDataHandleHelper(&writer, request)
+	if err != nil {
+		return
+	}
+
+	// Retriving user wallet data
+	wallet, err := data.GetMainPanelWalletData(username)
+	if err != nil {
+		http.Error(writer, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	walletMarshalized, err := json.Marshal(wallet)
+	if err != nil {
+		http.Error(writer, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	writer.Write(walletMarshalized)
 }

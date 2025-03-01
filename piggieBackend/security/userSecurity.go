@@ -160,11 +160,7 @@ func SecurityRunExistingUser(existingUser content.ExistingUser) error {
 	// Verifing that user account with given username exists, after that retriving hashed password and salt from db
 	passwordAndSalt, err := data.VerifyUserExistence(existingUser.Username)
 	if err != nil {
-		if err != utility.ErrNoRows {
-			return err
-		} else {
-			return err
-		}
+		return err
 	}
 
 	existingUser.Salt = passwordAndSalt.Salt

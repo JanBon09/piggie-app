@@ -2,6 +2,7 @@ package security
 
 import (
 	"net/http"
+	"piggieBackend/data"
 	"piggieBackend/utility"
 	"time"
 
@@ -9,6 +10,14 @@ import (
 )
 
 var encodedSecretKey string
+
+var (
+	getFunctionsMap map[string]interface{}
+)
+
+func initFunctionsMap() {
+	getFunctionsMap["userPanel"] = data.GetMainPanelWalletData
+}
 
 func LoadSecretKey(filepath string) error {
 	var err error
@@ -24,8 +33,8 @@ func LoadSecretKey(filepath string) error {
 // Create claims for JWT
 func claimsCreation(username string, duration int) jwt.MapClaims {
 	return jwt.MapClaims{
-		"username": username,
-		"exp":      time.Now().Add(time.Duration(duration) * time.Minute).Unix()}
+		"sub": username,
+		"exp": time.Now().Add(time.Duration(duration) * time.Minute).Unix()}
 }
 
 // Create JWT
@@ -44,13 +53,23 @@ func createJWT(username string, duration int) (string, error) {
 	return userJWT.SignedString([]byte(encodedSecretKey))
 }
 
-// Verifing JWT that comes with user request is valid
-func verifyJWT(userJWTString string) error {
-	userJWT, err := jwt.Parse(userJWTString, func(token *jwt.Token) (interface{}, error) { return encodedSecretKey, nil })
-	if err != nil {
-		return err
-	}
+// Template function to fill jwt.Parse() method
+func retriveSecretKey(token *jwt.Token) (interface{}, error) {
+	return encodedSecretKey, nil
+}
 
+func parseJWT(userJWTString string) (*jwt.Token, error) {
+	return jwt.Parse(userJWTString, retriveSecretKey)
+}
+
+// Function takes signed JWT string, parses it and returns username for
+// further use in acquiring data
+func retriveJWTSubject(userJWT *jwt.Token) (string, error) {
+	return userJWT.Claims.GetSubject()
+}
+
+// Verifing JWT that comes with user request is valid
+func verifyJWT(userJWT *jwt.Token) error {
 	if !userJWT.Valid {
 		return utility.ErrInvalidJWT
 	}
@@ -74,8 +93,34 @@ func UserSessionCookieCreation(username string, duration int) (http.Cookie, erro
 		Value:    userJWTString,
 		MaxAge:   int(duration),
 		HttpOnly: true,
+		Secure:   true,
 		SameSite: http.SameSiteNoneMode,
 	}
 
 	return sessionCookie, nil
+}
+
+// Function that connects smaller security functions being runed
+// for JWT being sent with user's data request.
+// 1. It parses signed JWT string and returns it in form of a jwt.Token
+// 2. It checks if JWT coming with request is valid
+// 3. It retrives username from JWT
+// Afther that it goes down the server pipeline to data layer
+func UserSessionVerification(userJWTString string) (string, error) {
+	userJWT, err := parseJWT(userJWTString)
+	if err != nil {
+		return "", err
+	}
+
+	err = verifyJWT(userJWT)
+	if err != nil {
+		return "", err
+	}
+
+	username, err := retriveJWTSubject(userJWT)
+	if err != nil {
+		return "", err
+	}
+
+	return username, nil
 }
